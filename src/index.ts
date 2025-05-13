@@ -26,16 +26,30 @@ const StealthPlugin = StealthPluginImport as any;
 puppeteerExtra.use(StealthPlugin());
 
 // --- Configuration & Environment Check ---
-const openAIApiKey = process.env.OPENAI_API_KEY;
+const apiKey = process.env.OPENAI_API_KEY;
+const visionModel = process.env.VISION_MODEL || 'gpt-4.1';
+const apiBaseUrl = process.env.API_BASE_URL;
+const serverPort = process.env.PORT || 3001;
 
-if (!openAIApiKey) {
+if (!apiKey) {
     console.error("Error: OPENAI_API_KEY environment variable is not set.");
     process.exit(1);
 }
 
-const openai = new OpenAI({
-    apiKey: openAIApiKey,
-});
+// Configure API client
+const apiConfig: any = {
+    apiKey: apiKey,
+};
+
+// Add custom base URL if provided
+if (apiBaseUrl) {
+    apiConfig.baseURL = apiBaseUrl;
+    console.log(`Using custom API endpoint: ${apiBaseUrl}`);
+}
+
+console.log(`Using vision model: ${visionModel}`);
+
+const openai = new OpenAI(apiConfig);
 
 // --- Helper Functions ---
 function markCodeParents(node: Element | null) {
@@ -383,7 +397,7 @@ IMPORTANT: Your response must be valid JSON.
 `;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: visionModel,
     messages: [
       {
         role: "user",
@@ -622,10 +636,12 @@ app.post("/messages", async (req: Request, res: Response) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
-
-const webserver = app.listen(PORT, () => {
-    console.log(`${serverName} v${serverVersion} is running on port ${PORT}`);
+const webserver = app.listen(serverPort, () => {
+    console.log(`${serverName} v${serverVersion} is running on port ${serverPort}`);
+    console.log(`Using vision model: ${visionModel}`);
+    if (apiBaseUrl) {
+        console.log(`Using custom API endpoint: ${apiBaseUrl}`);
+    }
 });
 
 webserver.keepAliveTimeout = 3000;
