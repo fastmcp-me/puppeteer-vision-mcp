@@ -2,6 +2,8 @@
 
 This Model Context Protocol (MCP) server provides a tool for scraping webpages and converting them to markdown format using Puppeteer, Readability, and Turndown. It features AI-driven interaction capabilities to handle cookies, captchas, and other interactive elements automatically.
 
+**Now easily runnable via `npx`!**
+
 ## Features
 
 - Scrapes webpages using Puppeteer with stealth mode
@@ -18,138 +20,122 @@ This Model Context Protocol (MCP) server provides a tool for scraping webpages a
 - Special handling for code blocks, tables, and other structured content
 - Accessible via the Model Context Protocol
 - Option to view browser interaction in real-time by disabling headless mode
+- Easily consumable as an `npx` package.
 
-## Installation
+## Quick Start with NPX
 
-```bash
-# Clone the repository
-git clone <repository-url>
-cd web-scraper-mcp-server
+The recommended way to use this server is via `npx`, which ensures you're running the latest version without needing to clone or manually install.
 
-# Install dependencies
-npm install
+1.  **Prerequisites:** Ensure you have Node.js and npm installed.
+2.  **Environment Setup:**
+    The server requires an `OPENAI_API_KEY`. You can provide this and other optional configurations in two ways:
+    *   **`.env` file:** Create a `.env` file in the directory where you will run the `npx` command.
+    *   **Shell Environment Variables:** Export the variables in your terminal session.
 
-# Build the project
-npm run build
+    **Example `.env` file or shell exports:**
+    ```env
+    # Required
+    OPENAI_API_KEY=your_api_key_here
+
+    # Optional (defaults shown)
+    # VISION_MODEL=gpt-4.1
+    # API_BASE_URL=https://api.openai.com/v1   # Uncomment to override
+    # USE_SSE=true                             # Uncomment to use SSE mode instead of stdio
+    # PORT=3001                                # Only used in SSE mode
+    # DISABLE_HEADLESS=true                    # Uncomment to see the browser in action
+    ```
+
+3.  **Run the Server:**
+    Open your terminal and run:
+    ```bash
+    npx -y puppeteer-vision-mcp-server
+    ```
+    *   The `-y` flag automatically confirms any prompts from `npx`.
+    *   This command will download (if not already cached) and execute the server.
+    *   By default, it starts in `stdio` mode. If `USE_SSE=true` is set in your environment, it will start an HTTP server for SSE communication.
+
+## Using as an MCP Tool with NPX
+
+This server is designed to be integrated as a tool within an MCP-compatible LLM orchestrator. Here's an example configuration snippet:
+
+```json
+{
+  "mcpServers": {
+    "web-scraper": {
+      "command": "npx",
+      "args": ["-y", "puppeteer-vision-mcp-serve"],
+      "env": {
+        "OPENAI_API_KEY": "YOUR_OPENAI_API_KEY_HERE",
+        // Optional:
+        // "VISION_MODEL": "gpt-4.1",
+        // "API_BASE_URL": "https://api.example.com/v1",
+        // "DISABLE_HEADLESS": "true" // To see the browser during operations
+      }
+    }
+    // ... other MCP servers
+  }
+}
 ```
+When configured this way, the MCP orchestrator will manage the lifecycle of the `puppeteer-vision-mcp-server` process.
 
-## Environment Setup
+## Environment Configuration Details
 
-Create a `.env` file in the root directory with the following variables:
+Regardless of how you run the server (NPX or local development), it uses the following environment variables:
 
-```
-# Required
-OPENAI_API_KEY=your_api_key_here
-
-# Optional (defaults shown)
-VISION_MODEL=gpt-4.1
-# API_BASE_URL=https://api.openai.com/v1  # Uncomment to override
-# USE_SSE=true  # Uncomment to use SSE mode instead of stdio
-PORT=3001  # Only used in SSE mode
-DISABLE_HEADLESS=true  # Uncomment to see the browser in action
-```
-
-### API Configuration
-
-- **OPENAI_API_KEY**: Required API key for accessing the vision model
-- **VISION_MODEL**: The model to use for vision analysis
+- **`OPENAI_API_KEY`**: (Required) Your API key for accessing the vision model.
+- **`VISION_MODEL`**: (Optional) The model to use for vision analysis.
   - Default: `gpt-4.1`
-  - Can be any model with vision capabilities (e.g., `gpt-4o`, `claude-3-sonnet-20240229`)
-- **API_BASE_URL**: Optional custom API endpoint URL 
-  - Use this to connect to alternative OpenAI-compatible providers
-  - Examples:
-    - `https://api.together.xyz/v1` (Together.ai)
-    - `https://api.groq.com/v1` (Groq)
-    - `https://api.anthropic.com/v1` (Anthropic)
-    - `http://localhost:8000/v1` (Local deployment)
-    
-### Communication Modes
+  - Can be any model with vision capabilities.
+- **`API_BASE_URL`**: (Optional) Custom API endpoint URL.
+  - Use this to connect to alternative OpenAI-compatible providers (e.g., Together.ai, Groq, Anthropic, local deployments).
+- **`USE_SSE`**: (Optional) Set to `true` to enable SSE mode over HTTP.
+  - Default: `false` (uses stdio mode).
+- **`PORT`**: (Optional) The port for the HTTP server in SSE mode.
+  - Default: `3001`.
+- **`DISABLE_HEADLESS`**: (Optional) Set to `true` to run the browser in visible mode.
+  - Default: `false` (browser runs in headless mode).
+
+## Communication Modes
 
 The server supports two communication modes:
 
-1. **stdio** (Default): Communicates via standard input/output
-   - Perfect for direct integration with LLM tools
-   - Ideal for command-line usage and scripting
-   - No HTTP server is started in this mode
+1.  **stdio (Default)**: Communicates via standard input/output.
+    -   Perfect for direct integration with LLM tools that manage processes.
+    -   Ideal for command-line usage and scripting.
+    -   No HTTP server is started. This is the default mode when running via `npx` unless `USE_SSE=true` is set.
+2.  **SSE mode**: Communicates via Server-Sent Events over HTTP.
+    -   Enable by setting `USE_SSE=true` in your environment.
+    -   Starts an HTTP server on the specified `PORT` (default: 3001).
+    -   Use when you need to connect to the tool over a network.
 
-2. **SSE mode**: Communicates via Server-Sent Events over HTTP
-   - Enable by setting `USE_SSE=true` in your `.env` file
-   - Starts an HTTP server on the specified port (default: 3001)
-   - Use when you need to connect to the tool over a network
+## Tool Usage (MCP Invocation)
 
-### Browser Visibility
+The server provides a `scrape-webpage` tool.
 
-By default, the browser runs in headless mode (invisible). If you want to see what's happening during the scraping process:
+**Tool Parameters:**
 
-- Set `DISABLE_HEADLESS=true` in your `.env` file
-- This will show the browser window during scraping operations
-- Useful for debugging and understanding how the AI interacts with web pages
+- `url` (string, required): The URL of the webpage to scrape.
+- `autoInteract` (boolean, optional, default: true): Whether to automatically handle interactive elements.
+- `maxInteractionAttempts` (number, optional, default: 3): Maximum number of AI interaction attempts.
+- `waitForNetworkIdle` (boolean, optional, default: true): Whether to wait for network to be idle before processing.
 
-## Usage
-
-### Starting the Server
-
-```bash
-npm start
-```
-
-By default, this will start the MCP server in stdio mode, which communicates through standard input/output. 
-
-If you want to use SSE mode with HTTP:
-
-```bash
-# Set USE_SSE=true in your .env file first
-npm start
-```
-
-This will start an HTTP server on port 3001 (or the port specified in your `.env` file).
-
-### Using as a Tool with MCP-compatible LLMs
-
-The server provides a `scrape-webpage` tool that can be used by any MCP-compatible LLM.
-
-#### Using in stdio mode (default)
-
-In stdio mode, you can pipe commands directly to the server:
-
-```bash
-echo '{"id":"1","content":"Use the scrape-webpage tool to extract content from https://example.com"}' | npm start
-```
-
-Or integrate it with LLM tools that support stdio communication.
-
-#### Using in SSE mode
-
-When running in SSE mode, connect to the server using the SSE protocol:
-
-```
-GET /sse
-POST /messages?sessionId={sessionId}
-```
-
-Tool parameters:
-- `url` (string, required): The URL of the webpage to scrape
-- `autoInteract` (boolean, optional, default: true): Whether to automatically handle interactive elements
-- `maxInteractionAttempts` (number, optional, default: 3): Maximum number of interaction attempts
-- `waitForNetworkIdle` (boolean, optional, default: true): Whether to wait for network to be idle before processing
-
-### Response Format
+**Response Format:**
 
 The tool returns its result in a structured format:
 
-- **content**: Contains only the raw markdown text of the scraped webpage without any additional messages
-- **metadata**: Contains additional information about the scraping process:
-  - `message`: Status message about the scraping operation
-  - `success`: Boolean indicating whether the scraping was successful
-  - `contentSize`: Size of the content in characters (when successful)
+- **`content`**: An array containing a single text object with the raw markdown of the scraped webpage.
+- **`metadata`**: Contains additional information:
+  - `message`: Status message.
+  - `success`: Boolean indicating success.
+  - `contentSize`: Size of the content in characters (on success).
 
-Example response:
+*Example Success Response:*
 ```json
 {
   "content": [
     {
       "type": "text",
-      "text": "# Page Title\n\nThis is the content of the page...[markdown content continues]"
+      "text": "# Page Title\n\nThis is the content..."
     }
   ],
   "metadata": {
@@ -160,7 +146,7 @@ Example response:
 }
 ```
 
-In case of error:
+*Example Error Response:*
 ```json
 {
   "content": [
@@ -179,54 +165,54 @@ In case of error:
 ## How It Works
 
 ### AI-Driven Interaction
-
-The system uses vision-capable AI models to analyze web pages and intelligently handle various interactive elements:
-
-1. The scraper takes a screenshot of the page
-2. The screenshot is sent to the configured vision model (set via `VISION_MODEL`, defaults to `gpt-4.1`)
-3. The AI returns a structured response with the recommended action
-4. The system executes the recommended action (click, type, scroll, wait)
-5. This process repeats for a configurable number of attempts (default: 3)
-
-You can use any OpenAI-compatible API that supports vision capabilities by setting the appropriate environment variables. This allows for flexibility in choosing providers based on cost, performance, or regional availability.
-
-The AI can detect and handle:
-- Buttons to click (e.g., "Accept Cookies", "Continue Reading", "I Agree")
-- Input fields that need text (e.g., email subscription forms)
-- Areas that need scrolling
-- Situations that require waiting
+The system uses vision-capable AI models (configurable via `VISION_MODEL` and `API_BASE_URL`) to analyze screenshots of web pages and decide on actions like clicking, typing, or scrolling to bypass overlays and consent forms. This process repeats up to `maxInteractionAttempts`.
 
 ### Content Extraction
+After interactions, Mozilla's Readability extracts the main content, which is then sanitized and converted to Markdown using Turndown with custom rules for code blocks and tables.
 
-After handling interactive elements, the system:
-1. Extracts the main content using Mozilla's Readability
-2. Sanitizes the HTML to remove unwanted elements
-3. Converts the clean HTML to well-formatted Markdown
-4. Returns the Markdown content
+## Installation & Development (for Modifying the Code)
 
-## Development
+If you wish to contribute, modify the server, or run a local development version:
 
-```bash
-# Run in development mode (build and start)
-npm run dev
-```
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/djannot/puppeteer-vision-mcp.git
+    cd puppeteer-vision-mcp
+    ```
+2.  **Install Dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Build the Project:**
+    ```bash
+    npm run build
+    ```
+4.  **Set Up Environment:**
+    Create a `.env` file in the project's root directory with your `OPENAI_API_KEY` and any other desired configurations (see "Environment Configuration Details" above).
 
-## Customization
+5.  **Run for Development:**
+    ```bash
+    npm start # Starts the server using the local build
+    ```
+    Or, for automatic rebuilding on changes:
+    ```bash
+    npm run dev
+    ```
 
-You can modify the behavior of the scraper by editing the following parts of the code:
+## Customization (for Developers)
 
-- `analyzePageWithAI` function: Customize the prompt for the AI
-- `executeAction` function: Add new types of actions
-- `visitWebPage` function: Change scraping behavior and options
-- Turndown rules: Customize how different HTML elements are converted to Markdown
+You can modify the behavior of the scraper by editing:
+- `src/ai/vision-analyzer.ts` (`analyzePageWithAI` function): Customize the AI prompt.
+- `src/ai/page-interactions.ts` (`executeAction` function): Add new action types.
+- `src/scrapers/webpage-scraper.ts` (`visitWebPage` function): Change Puppeteer options.
+- `src/utils/markdown-formatters.ts`: Adjust Turndown rules for Markdown conversion.
 
 ## Dependencies
-
-- `@modelcontextprotocol/sdk`: MCP server implementation
-- `puppeteer` & `puppeteer-extra`: For web scraping with stealth capabilities
-- `@mozilla/readability` & `jsdom`: For extracting main content
-- `turndown`: For converting HTML to Markdown
-- `sanitize-html`: For cleaning HTML content
-- `openai`: For AI-driven interactions with webpages (compatible with various providers)
-- `express`: For handling HTTP requests
-- `zod`: For parameter validation
+Key dependencies include:
+- `@modelcontextprotocol/sdk`
+- `puppeteer`, `puppeteer-extra`
+- `@mozilla/readability`, `jsdom`
+- `turndown`, `sanitize-html`
+- `openai` (or compatible API for vision models)
+- `express` (for SSE mode)
+- `zod`

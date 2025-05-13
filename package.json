@@ -1,11 +1,11 @@
 {
-    "name": "web-scraper-mcp-server",
-    "version": "1.0.0",
+    "name": "puppeteer-vision-mcp-server",
+    "version": "0.1.0",
     "description": "MCP Server for scraping webpages and converting to markdown",
     "main": "build/index.js",
     "type": "module",
     "bin": {
-      "web-scraper": "./build/index.js"
+      "puppeteer-vision-mcp-server": "./build/index.js"
     },
     "scripts": {
       "build": "tsc && chmod 755 build/index.js",
@@ -21,8 +21,8 @@
       "web-scraper",
       "markdown"
     ],
-    "author": "",
-    "license": "ISC",
+    "author": "Denis Jannot",
+    "license": "Apache-2.0",
     "dependencies": {
       "@modelcontextprotocol/sdk": "^1.9.0",
       "@mozilla/readability": "^0.5.0",
