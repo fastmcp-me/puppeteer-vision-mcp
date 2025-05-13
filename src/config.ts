@@ -10,6 +10,7 @@ export const config = {
   apiBaseUrl: process.env.API_BASE_URL,
   serverPort: parseInt(process.env.PORT || '3001', 10),
   useSSE: process.env.USE_SSE === 'true',
+  headless: process.env.DISABLE_HEADLESS !== 'true', // Default to headless mode unless explicitly disabled
 };
 
 // Validate essential configuration
@@ -30,3 +31,4 @@ if (config.apiBaseUrl) {
 }
 
 console.log(`Using vision model: ${config.visionModel}`);
+console.log(`Browser mode: ${config.headless ? 'headless' : 'visible'}`);

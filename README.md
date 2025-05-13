@@ -17,6 +17,7 @@ This Model Context Protocol (MCP) server provides a tool for scraping webpages a
 - Converts HTML to well-formatted Markdown
 - Special handling for code blocks, tables, and other structured content
 - Accessible via the Model Context Protocol
+- Option to view browser interaction in real-time by disabling headless mode
 
 ## Installation
 
@@ -45,6 +46,7 @@ VISION_MODEL=gpt-4.1
 # API_BASE_URL=https://api.openai.com/v1  # Uncomment to override
 # USE_SSE=true  # Uncomment to use SSE mode instead of stdio
 PORT=3001  # Only used in SSE mode
+DISABLE_HEADLESS=true  # Uncomment to see the browser in action
 ```
 
 ### API Configuration
@@ -74,6 +76,14 @@ The server supports two communication modes:
    - Enable by setting `USE_SSE=true` in your `.env` file
    - Starts an HTTP server on the specified port (default: 3001)
    - Use when you need to connect to the tool over a network
+
+### Browser Visibility
+
+By default, the browser runs in headless mode (invisible). If you want to see what's happening during the scraping process:
+
+- Set `DISABLE_HEADLESS=true` in your `.env` file
+- This will show the browser window during scraping operations
+- Useful for debugging and understanding how the AI interacts with web pages
 
 ## Usage
 
@@ -218,88 +228,5 @@ You can modify the behavior of the scraper by editing the following parts of the
 - `turndown`: For converting HTML to Markdown
 - `sanitize-html`: For cleaning HTML content
 - `openai`: For AI-driven interactions with webpages (compatible with various providers)
-- `express`: For handling HTTP requests
-- `zod`: For parameter validation
-
-## License
-
-ISC
-`# Web Scraper MCP Server
-
-This Model Context Protocol (MCP) server provides a tool for scraping webpages and converting them to markdown format using Puppeteer, Readability, and Turndown.
-
-## Features
-
-- Scrapes webpages using Puppeteer with stealth mode
-- Extracts main content with Mozilla's Readability
-- Converts HTML to well-formatted Markdown
-- Special handling for code blocks, tables, and other structured content
-- Automatic cookie consent handling with AI-driven interactions
-- Accessible via the Model Context Protocol
-
-## Installation
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd web-scraper-mcp-server
-
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-```
-
-## Environment Setup
-
-Create a `.env` file in the root directory with the following variables:
-
-```
-OPENAI_API_KEY=your_openai_api_key
-PORT=3001 # Optional, defaults to 3001
-```
-
-## Usage
-
-### Starting the Server
-
-```bash
-npm start
-```
-
-This will start the MCP server on port 3001 (or the port specified in your `.env` file).
-
-### Using as a Tool with MCP-compatible LLMs
-
-The server provides a `scrape-webpage` tool that can be used by any MCP-compatible LLM.
-
-Tool parameters:
-- `url` (string, required): The URL of the webpage to scrape
-- `allowCookies` (boolean, optional, default: false): Whether to automatically accept cookies using AI-driven interactions
-
-## Development
-
-```bash
-# Run in development mode (build and start)
-npm run dev
-```
-
-## Customization
-
-You can modify the behavior of the scraper by editing the following parts of the code:
-
-- `visitWebPage` function: Handles the core scraping logic
-- `handlePageInteraction` function: Manages automatic interactions with cookie consent banners
-- Turndown rules: Customizes how different HTML elements are converted to Markdown
-
-## Dependencies
-
-- `@modelcontextprotocol/sdk`: MCP server implementation
-- `puppeteer` & `puppeteer-extra`: For web scraping with stealth capabilities
-- `@mozilla/readability` & `jsdom`: For extracting main content
-- `turndown`: For converting HTML to Markdown
-- `sanitize-html`: For cleaning HTML content
-- `openai`: For AI-driven interactions with webpages
 - `express`: For handling HTTP requests
 - `zod`: For parameter validation

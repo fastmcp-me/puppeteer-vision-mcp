@@ -5,6 +5,7 @@ import fs from 'fs';
 import { handlePageInteractions } from '../ai/page-interactions.js';
 import { processHtmlContent } from './content-processor.js';
 import { ScrapeResult, WebpageScrapeOptions } from '../types/index.js';
+import { config } from '../config.js';
 
 // Work around TypeScript issues with puppeteer-extra
 const puppeteerExtra = puppeteerExtraImport as any;
@@ -24,9 +25,9 @@ export async function visitWebPage({
   maxInteractionAttempts = 3,
   waitForNetworkIdle = true,
 }: WebpageScrapeOptions): Promise<ScrapeResult> {
-  // Launch puppeteer with stealth plugin
+  // Launch puppeteer with stealth plugin and respect headless configuration
   const browser = await puppeteerExtra.launch({
-    headless: "new",
+    headless: config.headless ? "new" : false, // Use config.headless setting
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   
