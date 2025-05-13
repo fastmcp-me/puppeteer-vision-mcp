@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-// src/index.ts - Main entry point for the web-scraper MCP server
-import 'dotenv/config'; // Load .env file
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import express, { Request, Response } from "express";
 import { z } from "zod";
 
@@ -611,37 +610,56 @@ server.tool(
     }
 );
 
-const app = express();
+// Determine transport type from environment variables
+const useSSE = process.env.USE_SSE === 'true';
 
-// to support multiple simultaneous connections we have a lookup object from
-// sessionId to transport
-const transports: {[sessionId: string]: SSEServerTransport} = {};
-
-app.get("/sse", async (_: Request, res: Response) => {
-  const transport = new SSEServerTransport('/messages', res);
-  transports[transport.sessionId] = transport;
-  res.on("close", () => {
-    delete transports[transport.sessionId];
-  });
-  await server.connect(transport);
-});
-
-app.post("/messages", async (req: Request, res: Response) => {
-  const sessionId = req.query.sessionId as string;
-  const transport = transports[sessionId];
-  if (transport) {
-    await transport.handlePostMessage(req, res);
-  } else {
-    res.status(400).send('No transport found for sessionId');
-  }
-});
-
-const webserver = app.listen(serverPort, () => {
-    console.log(`${serverName} v${serverVersion} is running on port ${serverPort}`);
-    console.log(`Using vision model: ${visionModel}`);
+if (useSSE) {
+    // Setup Express server for SSE mode
+    const app = express();
+    
+    // to support multiple simultaneous connections we have a lookup object from
+    // sessionId to transport
+    const transports: {[sessionId: string]: SSEServerTransport} = {};
+    
+    app.get("/sse", async (_: Request, res: Response) => {
+      const transport = new SSEServerTransport('/messages', res);
+      transports[transport.sessionId] = transport;
+      res.on("close", () => {
+        delete transports[transport.sessionId];
+      });
+      await server.connect(transport);
+    });
+    
+    app.post("/messages", async (req: Request, res: Response) => {
+      const sessionId = req.query.sessionId as string;
+      const transport = transports[sessionId];
+      if (transport) {
+        await transport.handlePostMessage(req, res);
+      } else {
+        res.status(400).send('No transport found for sessionId');
+      }
+    });
+    
+    const webserver = app.listen(serverPort, () => {
+        console.log(`${serverName} v${serverVersion} is running in SSE mode on port ${serverPort}`);
+        if (apiBaseUrl) {
+            console.log(`Using custom API endpoint: ${apiBaseUrl}`);
+        }
+    });
+    
+    webserver.keepAliveTimeout = 3000;
+} else {
+    // Use Stdio transport (default mode)
+    const stdioTransport = new StdioServerTransport();
+    
+    console.log(`${serverName} v${serverVersion} starting in stdio mode`);
     if (apiBaseUrl) {
         console.log(`Using custom API endpoint: ${apiBaseUrl}`);
     }
-});
-
-webserver.keepAliveTimeout = 3000;
+    
+    // Connect the transport to the server
+    server.connect(stdioTransport).catch((error) => {
+        console.error("Error connecting transport:", error);
+        process.exit(1);
+    });
+}

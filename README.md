@@ -1,6 +1,6 @@
-# Pupeeter Vision MCP Server
+# Puppeteer vision MCP Server
 
-This Model Context Protocol (MCP) server provides a tool for scraping webpages and converting them to markdown format using Puppeteer, Readability, and Turndown. It features AI-driven interaction capabilities (using vision) to handle cookies, captchas, and other interactive elements automatically.
+This Model Context Protocol (MCP) server provides a tool for scraping webpages and converting them to markdown format using Puppeteer, Readability, and Turndown. It features AI-driven interaction capabilities to handle cookies, captchas, and other interactive elements automatically.
 
 ## Features
 
@@ -37,11 +37,43 @@ npm run build
 Create a `.env` file in the root directory with the following variables:
 
 ```
-OPENAI_API_KEY=your_openai_api_key
-PORT=3001 # Optional, defaults to 3001
+# Required
+OPENAI_API_KEY=your_api_key_here
+
+# Optional (defaults shown)
+VISION_MODEL=gpt-4.1
+# API_BASE_URL=https://api.openai.com/v1  # Uncomment to override
+# USE_SSE=true  # Uncomment to use SSE mode instead of stdio
+PORT=3001  # Only used in SSE mode
 ```
 
-The OpenAI API key is required for the AI-powered interaction capabilities.
+### API Configuration
+
+- **OPENAI_API_KEY**: Required API key for accessing the vision model
+- **VISION_MODEL**: The model to use for vision analysis
+  - Default: `gpt-4.1`
+  - Can be any model with vision capabilities (e.g., `gpt-4o`, `claude-3-sonnet-20240229`)
+- **API_BASE_URL**: Optional custom API endpoint URL 
+  - Use this to connect to alternative OpenAI-compatible providers
+  - Examples:
+    - `https://api.together.xyz/v1` (Together.ai)
+    - `https://api.groq.com/v1` (Groq)
+    - `https://api.anthropic.com/v1` (Anthropic)
+    - `http://localhost:8000/v1` (Local deployment)
+    
+### Communication Modes
+
+The server supports two communication modes:
+
+1. **stdio** (Default): Communicates via standard input/output
+   - Perfect for direct integration with LLM tools
+   - Ideal for command-line usage and scripting
+   - No HTTP server is started in this mode
+
+2. **SSE mode**: Communicates via Server-Sent Events over HTTP
+   - Enable by setting `USE_SSE=true` in your `.env` file
+   - Starts an HTTP server on the specified port (default: 3001)
+   - Use when you need to connect to the tool over a network
 
 ## Usage
 
@@ -51,11 +83,39 @@ The OpenAI API key is required for the AI-powered interaction capabilities.
 npm start
 ```
 
-This will start the MCP server on port 3001 (or the port specified in your `.env` file).
+By default, this will start the MCP server in stdio mode, which communicates through standard input/output. 
+
+If you want to use SSE mode with HTTP:
+
+```bash
+# Set USE_SSE=true in your .env file first
+npm start
+```
+
+This will start an HTTP server on port 3001 (or the port specified in your `.env` file).
 
 ### Using as a Tool with MCP-compatible LLMs
 
 The server provides a `scrape-webpage` tool that can be used by any MCP-compatible LLM.
+
+#### Using in stdio mode (default)
+
+In stdio mode, you can pipe commands directly to the server:
+
+```bash
+echo '{"id":"1","content":"Use the scrape-webpage tool to extract content from https://example.com"}' | npm start
+```
+
+Or integrate it with LLM tools that support stdio communication.
+
+#### Using in SSE mode
+
+When running in SSE mode, connect to the server using the SSE protocol:
+
+```
+GET /sse
+POST /messages?sessionId={sessionId}
+```
 
 Tool parameters:
 - `url` (string, required): The URL of the webpage to scrape
@@ -110,13 +170,15 @@ In case of error:
 
 ### AI-Driven Interaction
 
-The system uses GPT-4 Vision capabilities to analyze web pages and intelligently handle various interactive elements:
+The system uses vision-capable AI models to analyze web pages and intelligently handle various interactive elements:
 
 1. The scraper takes a screenshot of the page
-2. The screenshot is sent to OpenAI's GPT-4 with instructions to identify interactive elements
+2. The screenshot is sent to the configured vision model (set via `VISION_MODEL`, defaults to `gpt-4.1`)
 3. The AI returns a structured response with the recommended action
 4. The system executes the recommended action (click, type, scroll, wait)
 5. This process repeats for a configurable number of attempts (default: 3)
+
+You can use any OpenAI-compatible API that supports vision capabilities by setting the appropriate environment variables. This allows for flexibility in choosing providers based on cost, performance, or regional availability.
 
 The AI can detect and handle:
 - Buttons to click (e.g., "Accept Cookies", "Continue Reading", "I Agree")
@@ -155,7 +217,7 @@ You can modify the behavior of the scraper by editing the following parts of the
 - `@mozilla/readability` & `jsdom`: For extracting main content
 - `turndown`: For converting HTML to Markdown
 - `sanitize-html`: For cleaning HTML content
-- `openai`: For AI-driven interactions with webpages
+- `openai`: For AI-driven interactions with webpages (compatible with various providers)
 - `express`: For handling HTTP requests
 - `zod`: For parameter validation
 
