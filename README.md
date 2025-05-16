@@ -63,7 +63,7 @@ This server is designed to be integrated as a tool within an MCP-compatible LLM 
   "mcpServers": {
     "web-scraper": {
       "command": "npx",
-      "args": ["-y", "puppeteer-vision-mcp-serve"],
+      "args": ["-y", "puppeteer-vision-mcp-server"],
       "env": {
         "OPENAI_API_KEY": "YOUR_OPENAI_API_KEY_HERE",
         // Optional:
