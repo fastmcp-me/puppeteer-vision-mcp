@@ -40,8 +40,9 @@ The recommended way to use this server is via `npx`, which ensures you're runnin
     # Optional (defaults shown)
     # VISION_MODEL=gpt-4.1
     # API_BASE_URL=https://api.openai.com/v1   # Uncomment to override
-    # USE_SSE=true                             # Uncomment to use SSE mode instead of stdio
-    # PORT=3001                                # Only used in SSE mode
+    # TRANSPORT_TYPE=stdio                     # Options: stdio, sse, http
+    # USE_SSE=true                             # Deprecated: use TRANSPORT_TYPE=sse instead
+    # PORT=3001                                # Only used in sse/http modes
     # DISABLE_HEADLESS=true                    # Uncomment to see the browser in action
     ```
 
@@ -52,7 +53,7 @@ The recommended way to use this server is via `npx`, which ensures you're runnin
     ```
     *   The `-y` flag automatically confirms any prompts from `npx`.
     *   This command will download (if not already cached) and execute the server.
-    *   By default, it starts in `stdio` mode. If `USE_SSE=true` is set in your environment, it will start an HTTP server for SSE communication.
+    *   By default, it starts in `stdio` mode. Set `TRANSPORT_TYPE=sse` or `TRANSPORT_TYPE=http` for HTTP server modes.
 
 ## Using as an MCP Tool with NPX
 
@@ -69,6 +70,7 @@ This server is designed to be integrated as a tool within an MCP-compatible LLM 
         // Optional:
         // "VISION_MODEL": "gpt-4.1",
         // "API_BASE_URL": "https://api.example.com/v1",
+        // "TRANSPORT_TYPE": "stdio", // or "sse" or "http"
         // "DISABLE_HEADLESS": "true" // To see the browser during operations
       }
     }
@@ -88,25 +90,36 @@ Regardless of how you run the server (NPX or local development), it uses the fol
   - Can be any model with vision capabilities.
 - **`API_BASE_URL`**: (Optional) Custom API endpoint URL.
   - Use this to connect to alternative OpenAI-compatible providers (e.g., Together.ai, Groq, Anthropic, local deployments).
-- **`USE_SSE`**: (Optional) Set to `true` to enable SSE mode over HTTP.
-  - Default: `false` (uses stdio mode).
-- **`PORT`**: (Optional) The port for the HTTP server in SSE mode.
+- **`TRANSPORT_TYPE`**: (Optional) The transport protocol to use.
+  - Options: `stdio` (default), `sse`, `http`
+  - `stdio`: Direct process communication (recommended for most use cases)
+  - `sse`: Server-Sent Events over HTTP (legacy mode)
+  - `http`: Streamable HTTP transport with session management
+- **`USE_SSE`**: (Optional, deprecated) Set to `true` to enable SSE mode over HTTP.
+  - Deprecated: Use `TRANSPORT_TYPE=sse` instead.
+- **`PORT`**: (Optional) The port for the HTTP server in SSE or HTTP mode.
   - Default: `3001`.
 - **`DISABLE_HEADLESS`**: (Optional) Set to `true` to run the browser in visible mode.
   - Default: `false` (browser runs in headless mode).
 
 ## Communication Modes
 
-The server supports two communication modes:
+The server supports three communication modes:
 
 1.  **stdio (Default)**: Communicates via standard input/output.
     -   Perfect for direct integration with LLM tools that manage processes.
     -   Ideal for command-line usage and scripting.
-    -   No HTTP server is started. This is the default mode when running via `npx` unless `USE_SSE=true` is set.
+    -   No HTTP server is started. This is the default mode.
 2.  **SSE mode**: Communicates via Server-Sent Events over HTTP.
-    -   Enable by setting `USE_SSE=true` in your environment.
+    -   Enable by setting `TRANSPORT_TYPE=sse` in your environment.
     -   Starts an HTTP server on the specified `PORT` (default: 3001).
     -   Use when you need to connect to the tool over a network.
+    -   Connect to: `http://localhost:3001/sse`
+3.  **HTTP mode**: Communicates via Streamable HTTP transport with session management.
+    -   Enable by setting `TRANSPORT_TYPE=http` in your environment.
+    -   Starts an HTTP server on the specified `PORT` (default: 3001).
+    -   Supports full session management and resumable connections.
+    -   Connect to: `http://localhost:3001/mcp`
 
 ## Tool Usage (MCP Invocation)
 
