@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/djannot-puppeteer-vision-mcp-badge.png)](https://mseep.ai/app/djannot-puppeteer-vision-mcp)
+
 # Puppeteer vision MCP Server
 
 This Model Context Protocol (MCP) server provides a tool for scraping webpages and converting them to markdown format using Puppeteer, Readability, and Turndown. It features AI-driven interaction capabilities to handle cookies, captchas, and other interactive elements automatically.
