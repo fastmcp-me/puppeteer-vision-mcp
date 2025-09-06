@@ -1,3 +1,10 @@
+[![Add to Cursor](https://fastmcp.me/badges/cursor_dark.svg)](https://fastmcp.me/MCP/Details/868/puppeteer-vision-web-scraper)
+[![Add to VS Code](https://fastmcp.me/badges/vscode_dark.svg)](https://fastmcp.me/MCP/Details/868/puppeteer-vision-web-scraper)
+[![Add to Claude](https://fastmcp.me/badges/claude_dark.svg)](https://fastmcp.me/MCP/Details/868/puppeteer-vision-web-scraper)
+[![Add to ChatGPT](https://fastmcp.me/badges/chatgpt_dark.svg)](https://fastmcp.me/MCP/Details/868/puppeteer-vision-web-scraper)
+[![Add to Codex](https://fastmcp.me/badges/codex_dark.svg)](https://fastmcp.me/MCP/Details/868/puppeteer-vision-web-scraper)
+[![Add to Gemini](https://fastmcp.me/badges/gemini_dark.svg)](https://fastmcp.me/MCP/Details/868/puppeteer-vision-web-scraper)
+
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/djannot-puppeteer-vision-mcp-badge.png)](https://mseep.ai/app/djannot-puppeteer-vision-mcp)
 
 # Puppeteer vision MCP Server
